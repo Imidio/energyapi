@@ -4,10 +4,13 @@ import { sql } from "./config/db.js";
 import rateLimiter from "./middleware/rateLimiter.js";
 
 import transactionRoute from "./routes/transactionRoute.js";
+import job from "./config/cron.js";
 // Load environment variables
 dotenv.config();
 
 const app = express();
+
+if (process.env.NODE_ENV === "production") job.start();
 
 // Middleware
 app.use(rateLimiter)
@@ -19,8 +22,8 @@ app.use((req, res, next) => {
 });
 
 
-app.get("/", (req, res) => {
-    res.send("Working");
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "ok" });
 });
 
 const PORT = process.env.PORT || 5001;
