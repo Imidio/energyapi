@@ -5,6 +5,7 @@ import rateLimiter from "./middleware/rateLimiter.js";
 
 import transactionRoute from "./routes/transactionRoute.js";
 import job from "./config/cron.js";
+job.start();
 // Load environment variables
 dotenv.config();
 
@@ -21,12 +22,16 @@ app.use((req, res, next) => {
     next();
 });
 
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "ok" });
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 
 async function initDB() {
     try {
