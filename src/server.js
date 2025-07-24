@@ -13,7 +13,7 @@ const app = express();
 if (process.env.NODE_ENV === "production") job.start();
 
 // Middleware
-app.use(rateLimiter)
+//app.use(rateLimiter)
 app.use(express.json());
 
 app.use((req, res, next) => {

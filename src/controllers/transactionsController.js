@@ -4,6 +4,7 @@ export async function getTransactionsByUserId(req, res) {
         const transactions = await sql`
             SELECT * FROM transactions WHERE user_id = ${userId} ORDER BY created_at DESC
         `;
+        console.log("Data:", 1);
 
         res.status(200).json(transactions); // ✅ corrected
     } catch (error) {
@@ -16,17 +17,22 @@ export async function getTransactionsByUserId(req, res) {
 export async function createTransaction(req, res) {
     const { title, amount, category, user_id } = req.body;
 
+    console.log("🔁 Received POST /api/transactions");
+    console.log("📦 Request body:", req.body);
+
     // Validate the request body
     if (!title || !amount || !category || !user_id) {
         return res.status(400).json({ error: "All fields are required!" });
     }
 
     try {
+        console.log("🛠 Inserting into database...");
         const result = await sql`
                 INSERT INTO transactions (user_id, title, amount, category)
                 VALUES (${user_id}, ${title}, ${amount}, ${category})
                 RETURNING id;
             `;
+            console.log("✅ Inserted:", newTransaction);
 
         return res.status(201).json({
             message: "Transaction created successfully",

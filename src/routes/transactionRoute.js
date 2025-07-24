@@ -4,8 +4,8 @@ import {getTransactionsByUserId, createTransaction, deleteTransaction, getTransa
 
 const router = express.Router()
 
-router.get("/:userId", getTransactionsByUserId);
-/* router.get("/:userId", async (req, res) => {
+//router.get("/:userId", getTransactionsByUserId);
+ router.get("/:userId", async (req, res) => {
     try {
 
         const { userId } = req.params
@@ -19,7 +19,7 @@ router.get("/:userId", getTransactionsByUserId);
         return res.status(500).json({ error: "Failed to select transaction." });
 
     }
-}) */
+}) 
 
 router.delete("/:id", deleteTransaction);
 
