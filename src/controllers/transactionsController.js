@@ -1,18 +1,17 @@
-
-export async function getTransactionsByUserId(params) {
+export async function getTransactionsByUserId(req, res) {
     try {
         const { userId } = req.params;
         const transactions = await sql`
             SELECT * FROM transactions WHERE user_id = ${userId} ORDER BY created_at DESC
         `;
 
-        resizeBy.status(200).json(transactions);
-
+        res.status(200).json(transactions); // ✅ corrected
     } catch (error) {
-        console.log("Erro buscando dados");
-        resizeBy.status(500).json({ message: "Internal Server Err" });
+        console.error("Erro buscando dados:", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 }
+
 
 export async function createTransaction(req, res) {
     const { title, amount, category, user_id } = req.body;
@@ -38,54 +37,57 @@ export async function createTransaction(req, res) {
         return res.status(500).json({ error: "Failed to create transaction." });
     }
 }
-export async function deleteTransaction(req, res){
+
+export async function deleteTransaction(req, res) {
     try {
         const { id } = req.params;
-        if (isNaN(parseInt(id))) {
-            return res.status(400).json({ message: "Id Inválido!!" })
-        }
-        await sql`
-                DELETE FROM transactions WHERE id = ${id} RETURNING *    
-            `
-        if (result.length === 0) {
-            return res.status(404).json({ message: "Não encontrado!!" })
-        }
-        res.status(200).json({ message: "Deletado com sucesso!!" })
-    } catch (error) {
-        console.error("Error while creating transaction:", error);
-        return res.status(500).json({ error: "Failed to delete transaction." });
 
+        if (isNaN(parseInt(id))) {
+            return res.status(400).json({ message: "Id Inválido!!" });
+        }
+
+        const result = await sql`
+            DELETE FROM transactions WHERE id = ${id} RETURNING *
+        `;
+
+        if (result.length === 0) {
+            return res.status(404).json({ message: "Não encontrado!!" });
+        }
+
+        res.status(200).json({ message: "Deletado com sucesso!!" });
+    } catch (error) {
+        console.error("Error while deleting transaction:", error);
+        return res.status(500).json({ error: "Failed to delete transaction." });
     }
 }
 
-export async function getTransactionsSummary(req, res){
+
+
+export async function getTransactionsSummary(req, res) {
     try {
         const { userId } = req.params;
 
         const balanceResult = await sql`
-            SELECT COALESCE(sum(amount),0) as balance FROM transactions where user_id=${userId}
+            SELECT COALESCE(SUM(amount), 0) AS balance FROM transactions WHERE user_id = ${userId}
         `;
 
-        const incomeREsult = await sql`
-            SELECT COALESCE(sum(amount),0) as income FROM transactions where user_id=${userId}
-            and amount>0
+        const incomeResult = await sql`
+            SELECT COALESCE(SUM(amount), 0) AS income FROM transactions 
+            WHERE user_id = ${userId} AND amount > 0
         `;
 
         const expensesResult = await sql`
-            SELECT COALESCE(sum(amount),0) as income FROM transactions where user_id=${userId}
-            and amount<0
+            SELECT COALESCE(SUM(amount), 0) AS expenses FROM transactions 
+            WHERE user_id = ${userId} AND amount < 0
         `;
 
         res.status(200).json({
             balance: balanceResult[0].balance,
-            income: incomeREsult[0].balance,
-            expenses: expensesResult[0].balance,
-
-        })
-
+            income: incomeResult[0].income,
+            expenses: expensesResult[0].expenses,
+        });
     } catch (error) {
-        console.error("Error while creating transaction:", error);
-        return res.status(500).json({ error: "Failed to delete transaction." });
-
+        console.error("Error while calculating summary:", error);
+        return res.status(500).json({ error: "Failed to retrieve summary." });
     }
 }
